@@ -40,7 +40,7 @@ Ferramenta leve e portátil para conversão de arquivos — **imagens**, **docum
 - **Imagens**: PNG ↔ JPG/JPEG ↔ WEBP ↔ BMP ↔ GIF ↔ TIFF (via Pillow).
 - **Documentos**: DOCX → PDF, TXT → PDF e PDF → imagens (uma por página).
 - **Dois modos** na CLI: arquivo único ou pasta inteira (`--batch`), com opção recursiva.
-- **Interface web local**: drag-and-drop, glassmorphism, dark/light automático.
+- **Interface web local**: drag-and-drop, seleção apenas de formatos compatíveis, prévia da rota de conversão, download sem recarregar a página e tema dark/light automático.
 - **Opções práticas**: qualidade (`--quality`), redimensionamento (`--resize`), modo silencioso (`--quiet`), verboso (`--verbose`), proteção contra sobrescrita (`--no-overwrite`).
 - **Detecção automática** do formato pela extensão.
 - **Mensagens em português** — claras e acionáveis (dizem o que fazer, não só o que falhou).
