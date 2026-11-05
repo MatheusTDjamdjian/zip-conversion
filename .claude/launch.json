@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "converter-web",
+      "runtimeExecutable": ".venv/Scripts/python.exe",
+      "runtimeArgs": ["-c", "import sys; sys.path.insert(0, 'converter'); from converter.web.__main__ import main; main(['--port', '5057', '--no-browser'])"],
+      "port": 5057
+    }
+  ]
+}

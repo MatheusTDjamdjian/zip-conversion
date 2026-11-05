@@ -33,20 +33,53 @@ class _Context:
     sources: list[str]
     targets: list[str]
     max_upload_mb: int
+    compat: dict[str, list[str]]
+    routes: list[dict[str, object]]
 
 
-def _render_error(ctx: _Context, message: str, status: int) -> tuple[str, int]:
-    """Renderiza o template inicial com mensagem de erro."""
+def _build_routes(compat: dict[str, list[str]]) -> list[dict[str, object]]:
+    """Agrupa origens que compartilham o mesmo conjunto de destinos.
+
+    Usado apenas para exibir as rotas de conversão na interface.
+    """
+    groups: dict[tuple[str, ...], list[str]] = {}
+    for source, targets in compat.items():
+        groups.setdefault(tuple(targets), []).append(source)
+
+    routes: list[dict[str, object]] = []
+    for targets, sources in groups.items():
+        sources = sorted(sources)
+        if sources == ["pdf"]:
+            label = "PDF"
+        elif list(targets) == ["pdf"]:
+            label = "Documentos"
+        else:
+            label = "Imagens"
+        routes.append({"label": label, "sources": sources, "targets": list(targets)})
+    order = {"Imagens": 0, "PDF": 1, "Documentos": 2}
+    routes.sort(key=lambda r: order.get(str(r["label"]), 99))
+    return routes
+
+
+def _render_page(ctx: _Context, error: str | None = None, status: int = 200) -> tuple[str, int]:
+    """Renderiza a página principal, opcionalmente com mensagem de erro."""
     return (
         render_template(
             "index.html",
             sources=ctx.sources,
             targets=ctx.targets,
             max_upload_mb=ctx.max_upload_mb,
-            error=message,
+            compat=ctx.compat,
+            routes=ctx.routes,
+            error=error,
         ),
         status,
     )
+
+
+def _render_error(ctx: _Context, message: str, status: int) -> tuple[str, int]:
+    """Renderiza o template inicial com mensagem de erro."""
+    return _render_page(ctx, error=message, status=status)
 
 
 def _parse_options(form) -> tuple[ConversionOptions | None, str | None]:
@@ -142,23 +175,20 @@ def create_app(max_upload_mb: int = _DEFAULT_MAX_UPLOAD_MB) -> Flask:
     app = Flask(__name__)
     app.config["MAX_CONTENT_LENGTH"] = max_upload_mb * 1024 * 1024
     engine = build_default_engine()
+    compat = {src: sorted(tgts) for src, tgts in sorted(engine.compatibility_map().items())}
     ctx = _Context(
         engine=engine,
         sources=sorted(engine.supported_sources()),
         targets=sorted(engine.supported_targets()),
         max_upload_mb=max_upload_mb,
+        compat=compat,
+        routes=_build_routes(compat),
     )
 
     @app.get("/")
-    def index() -> str:
+    def index():
         """Renderiza a página inicial com o formulário de upload."""
-        return render_template(
-            "index.html",
-            sources=ctx.sources,
-            targets=ctx.targets,
-            max_upload_mb=ctx.max_upload_mb,
-            error=None,
-        )
+        return _render_page(ctx)
 
     @app.post("/convert")
     def convert():

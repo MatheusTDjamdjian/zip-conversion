@@ -93,6 +93,14 @@ class ConversionEngine:
             result.update(conv.target_formats)
         return result
 
+    def compatibility_map(self) -> dict[str, set[str]]:
+        """Mapa ``origem -> destinos possíveis`` considerando todos os conversores."""
+        result: dict[str, set[str]] = {}
+        for conv in self._converters:
+            for source in conv.source_formats:
+                result.setdefault(source, set()).update(conv.target_formats)
+        return result
+
     def convert_file(
         self,
         input_path: Path,
